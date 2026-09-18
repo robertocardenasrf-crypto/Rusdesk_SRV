@@ -1,0 +1,9 @@
+# Claves y estado del servidor RustDesk: nunca deben subirse al repo
+rustdesk-server/data/*
+!rustdesk-server/data/.gitkeep
+
+.env
+
+# Backups locales de claves
+*.key.bak
+id_ed25519*

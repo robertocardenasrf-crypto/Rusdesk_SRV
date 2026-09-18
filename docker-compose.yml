@@ -1,0 +1,39 @@
+version: "3.8"
+
+# Servidor RustDesk autoalojado — hbbs (rendezvous/ID server) + hbbr (relay server)
+# Ambos contenedores corren en modo --net=host: en Linux esto expone los puertos
+# directamente en la interfaz del host, así que las secciones "ports" de abajo son
+# solo documentación de qué puertos necesita el servidor abiertos en firewall/router.
+
+services:
+  hbbs:
+    image: rustdesk/rustdesk-server:latest
+    container_name: hbbs
+    network_mode: host
+    restart: unless-stopped
+    command: hbbs -r ${RUSTDESK_RELAY_HOST:-127.0.0.1}:21117
+    volumes:
+      - ./rustdesk-server/data:/root
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+    # Puertos usados por hbbs (informativo, ya expuestos por network_mode: host):
+    #   21115/tcp  NAT type test
+    #   21116/tcp  ID registration / heartbeat
+    #   21116/udp  ID registration (NAT punch)
+    #   21118/tcp  Web client (opcional)
+
+  hbbr:
+    image: rustdesk/rustdesk-server:latest
+    container_name: hbbr
+    network_mode: host
+    restart: unless-stopped
+    command: hbbr
+    volumes:
+      - ./rustdesk-server/data:/root
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+    depends_on:
+      - hbbs
+    # Puertos usados por hbbr (informativo, ya expuestos por network_mode: host):
+    #   21117/tcp  Relay
+    #   21119/tcp  Relay web (opcional)
