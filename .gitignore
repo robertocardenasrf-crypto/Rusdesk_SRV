@@ -7,3 +7,5 @@ rustdesk-server/data/*
 # Backups locales de claves
 *.key.bak
 id_ed25519*
+rustdesk-keys-*.tar.gz
+backups-rustdesk/
