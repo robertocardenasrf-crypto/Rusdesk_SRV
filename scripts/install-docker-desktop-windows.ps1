@@ -7,7 +7,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$wslStatus = wsl --status 2>&1
+wsl --status *> $null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "WSL2 no está instalado/habilitado. Activándolo..."
     wsl --install --no-distribution
