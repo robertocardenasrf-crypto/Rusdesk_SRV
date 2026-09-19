@@ -30,7 +30,8 @@ de la red local. Detalle completo del estado en
 │   ├── deploy.sh            # Fase 3 — levanta hbbs/hbbr, imprime la key pública
 │   ├── backup-keys.sh       # Fase 4 — respalda id_ed25519 / id_ed25519.pub
 │   ├── setup-tailscale.sh   # Fase 5 — instala Tailscale (opción recomendada)
-│   └── harden-server.sh     # Fase 4 — firewall (ufw) + actualizaciones automáticas
+│   ├── harden-server.sh     # Fase 4 — firewall (ufw) + actualizaciones automáticas
+│   └── install-client-windows.ps1  # Fase 6 — instala y preconfigura el cliente en Windows
 └── docs/
     └── PLAN.md               # plan original completo
 ```
@@ -102,6 +103,25 @@ depende de la red).
 - Whitelist de IPs acotada al rango de Tailscale (`100.64.0.0/10`, o la IP
   exacta de cada dispositivo propio).
 - Desactivar permisos que no se usen (transferencia de archivos, audio).
+
+## Despliegue simplificado de clientes
+
+Para no tipear ID Server/Relay Server/Key a mano en cada dispositivo nuevo:
+
+- **Windows**: `scripts/install-client-windows.ps1` — baja el instalador
+  oficial más reciente, lo instala en silencio y deja la configuración del
+  servidor ya cargada. Correr como Administrador:
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File install-client-windows.ps1
+  ```
+  Hay reportes (no confirmados por el proyecto RustDesk) de que en algunas
+  versiones el archivo de config no toma efecto si la app ya se abrió antes.
+  Si eso pasa, usá **Export Config** desde un cliente que ya funcione
+  (Configuración > General) y pegá ese string en **Import Config** del
+  dispositivo nuevo — un solo paso en vez de tres campos.
+- **Otras plataformas** (Mac, Linux, Android, iOS): usar el mismo mecanismo
+  de Export/Import Config, no hay script de instalación automatizada para
+  esas plataformas en este repo todavía.
 
 ## Puertos que necesita el servidor
 
