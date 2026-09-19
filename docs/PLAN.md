@@ -106,3 +106,12 @@ tailscale ip -4
 - `RUSTDESK_RELAY_HOST` en `.env` apuntando a la IP de Tailscale — el servidor anuncia esa IP a los clientes, no la LAN.
 - Probado con cliente RustDesk en PC y en celular (Android/iOS), ambos con Tailscale instalado y logueados en la misma cuenta.
 - **Confirmado acceso remoto real**: conexión exitosa desde el celular con WiFi apagado (solo datos móviles) — valida que el túnel de Tailscale resuelve la falta de IP pública/CGNAT, que era el bloqueo original del proyecto.
+- Servidor endurecido con `ufw` (SSH y puertos RustDesk solo por `tailscale0`) y `unattended-upgrades` activo.
+
+## 6. Prueba exploratoria: servidor en Windows con Radmin VPN
+
+No reemplaza la decisión de la sección 4 (Tailscale sigue siendo la solución
+principal en Ubuntu) — es una instancia paralela e independiente para
+evaluar Radmin VPN, ya que no tiene cliente Linux y por eso no pudo usarse
+con el servidor actual. Detalle de despliegue en el `README.md`, sección
+"Servidor alternativo en Windows".

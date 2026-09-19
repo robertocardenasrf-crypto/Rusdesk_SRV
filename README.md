@@ -31,7 +31,11 @@ de la red local. Detalle completo del estado en
 │   ├── backup-keys.sh       # Fase 4 — respalda id_ed25519 / id_ed25519.pub
 │   ├── setup-tailscale.sh   # Fase 5 — instala Tailscale (opción recomendada)
 │   ├── harden-server.sh     # Fase 4 — firewall (ufw) + actualizaciones automáticas
-│   └── install-client-windows.ps1  # Fase 6 — instala y preconfigura el cliente en Windows
+│   ├── install-client-windows.ps1  # Fase 6 — instala y preconfigura el cliente en Windows
+│   ├── install-docker-desktop-windows.ps1  # servidor alternativo Windows — instala Docker Desktop
+│   └── deploy-windows.ps1   # servidor alternativo Windows — levanta hbbs/hbbr
+├── docker-compose.windows.yml  # servidor alternativo Windows (instancia paralela, prueba Radmin)
+├── .env.windows.example        # variables de entorno del servidor Windows
 └── docs/
     └── PLAN.md               # plan original completo
 ```
@@ -122,6 +126,58 @@ Para no tipear ID Server/Relay Server/Key a mano en cada dispositivo nuevo:
 - **Otras plataformas** (Mac, Linux, Android, iOS): usar el mismo mecanismo
   de Export/Import Config, no hay script de instalación automatizada para
   esas plataformas en este repo todavía.
+
+## Servidor alternativo en Windows (prueba con Radmin VPN)
+
+**Instancia paralela e independiente** del servidor de Ubuntu — su propia
+key, sus propios datos, no reemplaza ni interfiere con el servidor
+Ubuntu+Tailscale que ya está en producción. Se usa para evaluar Radmin VPN
+como mecanismo de acceso externo, ya que Radmin no tiene cliente Linux y por
+eso no puede usarse con el servidor actual.
+
+No hay binario oficial de `rustdesk-server` para Windows — se usa Docker
+Desktop con la misma imagen oficial que en Ubuntu (más estable que compilar
+hbbs/hbbr nativo desde código fuente con el toolchain de Rust, que no tiene
+soporte oficial en Windows). Por eso `docker-compose.windows.yml` es un
+archivo aparte del principal: Docker Desktop en Windows no soporta
+`network_mode: host` igual que Linux (corre sobre una VM vía WSL2 por
+debajo), así que acá los puertos se publican explícitamente con `ports:` en
+vez de usar modo host.
+
+**Pasos (en la VM Windows):**
+
+1. Instalar Docker Desktop:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts\install-docker-desktop-windows.ps1
+   ```
+   Requiere WSL2 — si no está habilitado, el script lo activa y pide
+   reiniciar la VM antes de continuar (correrlo una segunda vez después del
+   reinicio). Tras instalar Docker Desktop, abrilo una vez a mano para
+   aceptar los términos iniciales y esperar a que quede "running".
+
+2. Instalar **Radmin VPN** manualmente (`https://www.radmin-vpn.com/`, no
+   tiene instalador silencioso documentado) y crear/unirse a la red. Anotá
+   la IP virtual que le asigna a esta VM (ventana de Radmin VPN, red
+   típicamente `26.x.x.x`).
+
+3. Completar la config:
+   ```powershell
+   copy .env.windows.example .env
+   notepad .env
+   ```
+   Completar `RUSTDESK_RELAY_HOST` con esa IP de Radmin VPN.
+
+4. Levantar el servidor:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts\deploy-windows.ps1
+   ```
+   Muestra la clave pública generada (distinta a la del servidor Ubuntu) al
+   final.
+
+5. Configurar clientes de prueba apuntando a esa IP de Radmin VPN + la nueva
+   key, en otro equipo que también esté unido a la misma red Radmin VPN.
+   Sirve `install-client-windows.ps1`, cambiando los valores de servidor/key
+   al tope del script.
 
 ## Puertos que necesita el servidor
 

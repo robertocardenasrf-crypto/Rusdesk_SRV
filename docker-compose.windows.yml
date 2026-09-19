@@ -1,0 +1,35 @@
+# Servidor RustDesk para la VM Windows (prueba paralela con Radmin VPN).
+# Instancia independiente de la de Ubuntu: propia carpeta de datos, propia
+# key. Docker Desktop en Windows no soporta network_mode: host como Linux,
+# así que acá los puertos se publican explícitamente con "ports:".
+
+services:
+  hbbs:
+    image: rustdesk/rustdesk-server:latest
+    container_name: hbbs
+    restart: unless-stopped
+    command: hbbs -r ${RUSTDESK_RELAY_HOST:-127.0.0.1}:21117
+    ports:
+      - "21115:21115/tcp"
+      - "21116:21116/tcp"
+      - "21116:21116/udp"
+      - "21118:21118/tcp"
+    volumes:
+      - ./rustdesk-server/data:/root
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+
+  hbbr:
+    image: rustdesk/rustdesk-server:latest
+    container_name: hbbr
+    restart: unless-stopped
+    command: hbbr
+    ports:
+      - "21117:21117/tcp"
+      - "21119:21119/tcp"
+    volumes:
+      - ./rustdesk-server/data:/root
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+    depends_on:
+      - hbbs
