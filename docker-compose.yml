@@ -1,5 +1,3 @@
-version: "3.8"
-
 # Servidor RustDesk autoalojado — hbbs (rendezvous/ID server) + hbbr (relay server)
 # Ambos contenedores corren en modo --net=host: en Linux esto expone los puertos
 # directamente en la interfaz del host, así que las secciones "ports" de abajo son
