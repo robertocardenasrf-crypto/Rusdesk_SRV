@@ -10,11 +10,13 @@ en [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Estado
 
-Este repo cubre el **código y la configuración del servidor** (Fases 3-6 del
-plan). Las Fases 1-2 (instalar VMware Workstation, crear las VMs, configurar
-red bridged) son pasos manuales en tu propio equipo — no se pueden ejecutar
-desde este entorno, ya que corre en un contenedor aislado en la nube, no en tu
-PC.
+**Desplegado y probado.** El servidor corre en una VM Ubuntu Server 26.04
+(VMware Workstation Pro), con Tailscale como mecanismo de acceso externo —
+la VM está detrás de CGNAT (sin IP pública real), así que DDNS + port
+forwarding no era viable. Confirmado control remoto exitoso desde un cliente
+móvil con WiFi apagado (solo datos), validando que el acceso funciona fuera
+de la red local. Detalle completo del estado en
+[`docs/PLAN.md`](docs/PLAN.md) sección 5.
 
 ## Estructura
 
@@ -61,24 +63,24 @@ PC.
    ./scripts/backup-keys.sh ~/backups-rustdesk
    ```
 
-## Acceso externo (Fase 5)
+## Acceso externo (Fase 5) — decidido: Tailscale
 
-Según lo definido en `docs/PLAN.md` sección 4, la decisión pendiente es entre:
+El ISP asigna CGNAT (sin IP pública real), así que se descartó DDNS + port
+forwarding. Se eligió Tailscale sobre un VPS público porque el acceso es
+solo para dispositivos propios.
 
-- **Tailscale** (recomendado si solo vas a conectar tus propios dispositivos):
-  ```bash
-  ./scripts/setup-tailscale.sh
-  ```
-  Después, apuntá los clientes RustDesk a la IP `100.x.x.x` de Tailscale en vez
-  de la IP LAN.
+```bash
+./scripts/setup-tailscale.sh
+```
 
-- **VPS como servidor principal** (Oracle Cloud Free Tier u otro): migrar este
-  mismo `docker-compose.yml` al VPS, abrir los puertos 21115-21119 (TCP) y
-  21116 (UDP) en el firewall del proveedor y en `ufw`/`iptables` del VPS, y
-  usar la IP pública del VPS como `RUSTDESK_RELAY_HOST`.
+Instalar Tailscale también en cada dispositivo cliente (misma cuenta), y
+apuntar el cliente RustDesk (Configuración > Red) a la IP `100.x.x.x` de la
+VM en vez de la IP LAN.
 
-- **DDNS + port forwarding**: solo viable si el ISP asigna IP pública real
-  (sin CGNAT). Verificar esto antes de invertir tiempo en esta opción.
+Alternativa no usada, documentada por si el caso de uso cambia a "acceso
+público para terceros": migrar `docker-compose.yml` a un VPS con IP pública
+(ej. Oracle Cloud Free Tier), abriendo los puertos 21115-21119 (TCP) y 21116
+(UDP) en el firewall del proveedor y en `ufw`/`iptables` del VPS.
 
 ## Puertos que necesita el servidor
 

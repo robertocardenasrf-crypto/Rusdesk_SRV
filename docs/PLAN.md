@@ -95,7 +95,14 @@ tailscale ip -4
 ---
 
 ## 4. Pendiente a resolver al iniciar el nuevo chat
-1. Confirmar si el ISP asigna IP pública real o si hay CGNAT (determina si DDNS + port forwarding es viable).
-2. Confirmar cuántas VMs cliente se van a usar para las pruebas de latencia simultánea.
-3. Confirmar sistema operativo definitivo para las VMs cliente (Windows vs Ubuntu).
-4. Decidir entre Tailscale (acceso solo para dispositivos propios) o VPS como servidor principal (acceso público real).
+1. ~~Confirmar si el ISP asigna IP pública real o si hay CGNAT~~ — **Resuelto: hay CGNAT** (IP pública vista desde afuera no coincide con la IP WAN del router). Descarta DDNS + port forwarding.
+2. Confirmar cuántas VMs cliente se van a usar para las pruebas de latencia simultánea. — Pendiente, prueba inicial hecha con 1 PC + 1 celular.
+3. Confirmar sistema operativo definitivo para las VMs cliente (Windows vs Ubuntu). — Pendiente.
+4. ~~Decidir entre Tailscale o VPS~~ — **Resuelto: Tailscale.** Descartado Radmin VPN como alternativa por no tener cliente Linux (el servidor corre en una VM Ubuntu Server).
+
+## 5. Estado actual (implementado y probado)
+- Servidor RustDesk (hbbs + hbbr) corriendo en Docker sobre una VM Ubuntu Server 26.04 en VMware Workstation Pro, IP LAN `192.168.1.18`.
+- Tailscale instalado en la VM servidor, IP de tailnet `100.64.234.119`.
+- `RUSTDESK_RELAY_HOST` en `.env` apuntando a la IP de Tailscale — el servidor anuncia esa IP a los clientes, no la LAN.
+- Probado con cliente RustDesk en PC y en celular (Android/iOS), ambos con Tailscale instalado y logueados en la misma cuenta.
+- **Confirmado acceso remoto real**: conexión exitosa desde el celular con WiFi apagado (solo datos móviles) — valida que el túnel de Tailscale resuelve la falta de IP pública/CGNAT, que era el bloqueo original del proyecto.
