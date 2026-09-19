@@ -29,7 +29,8 @@ de la red local. Detalle completo del estado en
 │   ├── install-docker.sh    # Fase 3 — instala Docker en Ubuntu Server
 │   ├── deploy.sh            # Fase 3 — levanta hbbs/hbbr, imprime la key pública
 │   ├── backup-keys.sh       # Fase 4 — respalda id_ed25519 / id_ed25519.pub
-│   └── setup-tailscale.sh   # Fase 5 — instala Tailscale (opción recomendada)
+│   ├── setup-tailscale.sh   # Fase 5 — instala Tailscale (opción recomendada)
+│   └── harden-server.sh     # Fase 4 — firewall (ufw) + actualizaciones automáticas
 └── docs/
     └── PLAN.md               # plan original completo
 ```
@@ -81,6 +82,26 @@ Alternativa no usada, documentada por si el caso de uso cambia a "acceso
 público para terceros": migrar `docker-compose.yml` a un VPS con IP pública
 (ej. Oracle Cloud Free Tier), abriendo los puertos 21115-21119 (TCP) y 21116
 (UDP) en el firewall del proveedor y en `ufw`/`iptables` del VPS.
+
+## Seguridad
+
+**Servidor** — endurecer el firewall una vez que Tailscale esté andando:
+```bash
+./scripts/harden-server.sh
+```
+Esto configura `ufw` para que SSH y los puertos de RustDesk solo respondan
+por la interfaz `tailscale0` (no por la LAN normal), y activa
+`unattended-upgrades` para parches de seguridad automáticos. Si te quedás
+sin acceso por red, la consola de la VM en VMware sigue funcionando (no
+depende de la red).
+
+**Cliente RustDesk** (repetir en cada dispositivo, Configuración > Seguridad):
+- Contraseña permanente, distinta por dispositivo — no reutilizar la misma.
+- Desactivar **"Enable Direct IP Access"** — fuerza a que toda conexión pase
+  por hbbs/hbbr en vez de ir directo al cliente.
+- Whitelist de IPs acotada al rango de Tailscale (`100.64.0.0/10`, o la IP
+  exacta de cada dispositivo propio).
+- Desactivar permisos que no se usen (transferencia de archivos, audio).
 
 ## Puertos que necesita el servidor
 
